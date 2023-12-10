@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+</head>
+<body>
+    <form onsubmit="addNewExpense(event)">
+        <label for="expenseamount">Choose amount:</label>
+        <input type="number" name="expenseamount">
+        <label for="description">Choose description:</label>
+        <input type="text" name="description">
+        <label for="category">Choose a category</label>
+        <select id="category" name="category">
+            <option value="fuel">fuel</option>
+            <option value="food">food</option>
+            <option value="electricity">electricity</option>
+            <option value="Movie">Movie</option>
+        </select>
+        <button>Add Expense</button>
+    </form>
+    <div class="message"> </div>
+        <h1>Expenses</h1>
+        <ul id="listOfExpenses">
+        </ul>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js" integrity="sha512-b94Z6431JyXY14iSXwgzeZurHHRNkLt9d6bAHt7BZT38eqV+GyngIi/tVye4jBKPYQ2lBdRs0glww4fmpuLRwA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="../index.js"></script>
+</body>
+</body>
+</html>
