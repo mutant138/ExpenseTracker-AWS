@@ -1,6 +1,6 @@
 const Expense = require('../models/expense');
 const User = require('../models/user'); 
-const { updateTransactionStatus } = require('./purchase');
+const sequelize = require('../util/database')
 
 const indexPage = async (req, res) => {
     console.log("indexPage")
@@ -8,21 +8,24 @@ const indexPage = async (req, res) => {
   };
 
   const addexpense =async (req, res) => {
+    const t = await sequelize.transaction()
     const { expenseamount, description, category } = req.body;
 
     if(expenseamount == undefined || expenseamount.length === 0 ){
         return res.status(400).json({success: false, message: 'Parameters missing'})
     }
     try {
-        const expense = await Expense.create({ expenseamount, description, category, userId: req.user.id });
+        const expense = await Expense.create({ expenseamount, description, category, userId: req.user.id },{transaction: t});
         const totalExpense = Number(req.user.totalExpenses) + Number(expenseamount);
 
         await User.update({ totalExpenses: totalExpense }, {
-            where: { id: req.user.id }
+            where: { id: req.user.id },
+            transaction: t
         });
-
+        await t.commit()
         return res.status(201).json({ expense, success: true });
-    } catch (err) {
+    } catch(err) {
+        await t.rollback()
         return res.status(500).json({ success: false, error: err });
     }
 }
