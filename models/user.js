@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
 
+
 //id, name , password, phone number, role
 
 const User = sequelize.define('user', {
@@ -17,6 +18,14 @@ const User = sequelize.define('user', {
        unique: true
     },
     password: Sequelize.STRING,
+    ispremiumuser: {
+      type:  Sequelize.BOOLEAN,
+      defaultValue : false, 
+    },
+    totalExpenses: {
+      type :Sequelize.INTEGER,
+      defaultValue: 0,
+    }
 })
 
 module.exports = User;

@@ -24,7 +24,7 @@ const signup = async (req, res) => {
     }
     const saltrounds = 10;
     bcrypt.hash(password,saltrounds,async (err,hash)=>{
-      console.log(err)
+      //console.log(err)
       await User.create({ name, email, password: hash })
       res.status(200).json({ message: "Signup successful" })
     })
@@ -49,8 +49,7 @@ const login = async (req,res)=>{
          throw new Error(`Something went wrong`)
         }
         if(response){
-          // res.redirect('/public/index');
-          res.status(200).json({success: true, message:`User Logged in succesfully`, token: generateAcessToken(user[0].id, user[0].name)})
+          res.status(200).json({success: true, message:`User Logged in succesfully`, token: generateAccessToken(user[0].id, user[0].name,user[0].ispremiumuser)})
         }else{
           return res.status(400).json({success: false, message: `Password is incorrect`})
         }
@@ -63,13 +62,14 @@ const login = async (req,res)=>{
   }
 }
 
-function generateAcessToken(id,name){
-  return jwt.sign({userId: id , name:name },'TOKEN_SECRET')
+function generateAccessToken(id,name,ispremiumuser){ 
+  return jwt.sign({userId: id , name:name, ispremiumuser },'secretkeyformyproject1380')
 }
 
 module.exports = {
   signupPage,
   signup,
   loginPage,
-  login
+  login,
+  generateAccessToken
 };
