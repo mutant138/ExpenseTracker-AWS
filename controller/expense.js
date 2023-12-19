@@ -1,6 +1,7 @@
 const Expense = require('../models/expense');
 const User = require('../models/user'); 
 const sequelize = require('../util/database')
+const AWS = require('aws-sdk')
 
 const indexPage = async (req, res) => {
     console.log("indexPage")
@@ -72,10 +73,59 @@ const deleteExpense = async (req,res)=>{
    }
 }
 
+function uploadToS3(data , filename){
+    const BUCKET_NAME = 'expensetrackerwebsite';
+    const IAM_USER_KEY = 'AKIAU5Q4BEGLCRHX467B';
+    const IAM_USER_SECRET = '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';
+    let s3bucket = new AWS.S3({
+        accessKeyId: IAM_USER_KEY,
+        secretAccessKey: IAM_USER_SECRET,
+        //Bucket: BUCKET_NAME
+    })
+    
+        var params = {
+            Bucket: BUCKET_NAME,
+            Key: filename,
+            Body: data,
+            ACL: 'public-read'
+        }
+        return new Promise((resolve,reject)=>{
+            s3bucket.upload(params, (err, s3response)=>{
+                if(err){
+                    console.log("something went wrong",err)
+                    reject(err)
+                }else{
+                    console.log("success" , s3response)
+                   // return res.status(200).json({fileURL , succes: true})
+                   resolve(s3response.Location)
+                }
+            })
+        })       
+}
+
+const downloadExpenses = async(req,res)=>{
+    //console.log(req)
+   try {
+    console.log(req.user)
+    // if(!req.user.ispremiumuser){
+    //     return res.status(401).json({ success: false, message: 'User is not a premium User'})
+    // }
+      const expenses =await req.user.getExpenses()
+    //   console.log(expenses)
+    const stringifiedExpenses = JSON.stringify(expenses)
+    const userId= req.user.id;
+    const filename = `Expense${userId}/${new Date()}.txt`
+    const fileURL = await uploadToS3(stringifiedExpenses, filename)
+    res.status(200).json({ fileURL, success: true})
+   } catch(error){
+    console.log(error)
+   }
+}
 
 module.exports = {
     indexPage,
     addexpense,
     getexpenses,
-    deleteExpense
+    deleteExpense,
+    downloadExpenses
 }

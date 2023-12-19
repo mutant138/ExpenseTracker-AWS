@@ -17,3 +17,7 @@ function login(e) {
         document.body.innerHTML += `<div style="color:red;">${err.message} <div>`;
     })
 }
+
+function forgetpassword() {
+    window.location.href = "forgetpass"
+}

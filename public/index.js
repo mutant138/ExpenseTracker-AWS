@@ -20,7 +20,8 @@ function addNewExpense(e){
 
 function showPremiumuserMessage() {
     document.getElementById('rzp-button1').style.visibility = "hidden"
-    document.getElementById('message').innerHTML = "You are a premium user "
+    document.getElementById('message').innerHTML = "You are a premium user "   
+    document.getElementById('downloadexpense').style.visibility = "visible"
 }
 
 function parseJwt (token) {
@@ -124,12 +125,8 @@ function showLeaderboard() {
       const totalExpense = parseInt(userDetails.totalExpenses) || 0;
         badge.textContent = `Total Expense - ${totalExpense}`;
       // console.log(parseInt(userDetails.total_expense) || 0);
-
-
-      // Append both spans to the listItem
       listItem.appendChild(nameSpan);
       listItem.appendChild(badge);
-
       leaderboardList.appendChild(listItem);
       });
       // console.log(leaderboardElem.innerHTML); 
@@ -182,4 +179,24 @@ document.getElementById('rzp-button1').onclick = async function (e) {
     console.log(response)
     alert('Something went wrong')
  });
+}
+
+async function download(){
+    const token = localStorage.getItem('token')
+    console.log(token)
+    try {
+        const res = await axios.get('http://localhost:3000/user/download', { headers: { Authorization: token } })
+
+    if(res.status === 200){
+        var a = document.createElement("a")
+        a.href = res.data.fileURL;
+        a.download = 'myexpense.csv';
+        a.click();
+    }else{
+        console.log(res.data.message)
+        throw new Error(res.data.message)
+    }
+    } catch(error){
+        alert(error)
+    }  
 }
