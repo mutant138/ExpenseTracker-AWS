@@ -1,6 +1,8 @@
 const Razorpay = require('razorpay')
 const Order = require('../models/order')
 const userController = require('./user')
+const dotenv = require("dotenv")
+dotenv.config()
 
 const purchasePremium = async(req,res)=>{
     try {
@@ -14,15 +16,14 @@ const purchasePremium = async(req,res)=>{
                 throw new Error(err)
             }
             req.user.createOrder({orderid: order.id, status: 'PENDING'}).then(()=>{
-                console.log('Pending')
                 return res.status(201).json({order, key_id: rzp.key_id})
             }).catch(err=>{
-                throw new Error(err)
+                throw new Error(err)  
             })
         })
     } catch (error) {
         console.log(err);
-        res.status(403).json({ message: 'Sometghing went wrong', error: err})
+        res.status(403).json({ message: 'Something went wrong', error: err})
     }
 }
 

@@ -3,7 +3,7 @@ async function resetpass(event){
     try {
         const email = document.getElementById('email').value;
         console.log(email);
-        let res = await axios.post(`http://localhost:3000/password/forgotpassword`, {email: email});
+        let res = await axios.post(`/password/forgotpassword`, {email: email});
         if(res.status === 200) {
             confirm(`${res.data.message}`);
             window.location.href = '/user/login';

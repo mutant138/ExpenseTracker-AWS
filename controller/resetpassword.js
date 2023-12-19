@@ -1,8 +1,8 @@
 const uuid = require("uuid");
 const Sib = require("sib-api-v3-sdk");
 const bcrypt = require("bcrypt");
-require("dotenv").config();
-
+const dotenv =require("dotenv");
+dotenv.config()
 const User = require("../models/user");
 const Forgotpassword = require("../models/forgotpassword");
 
@@ -11,15 +11,12 @@ const apiKey = defaultClient.authentications["api-key"];
 apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
 
 const forgetPassPage = async (req, res) => {
-  console.log("forgetpass Page");
   res.sendFile("forgetpass.html", { root: "public/views" });
 };
 
 const forgotPassword = async (req, res) => {
   try {
     const email = req.body.email;
-    console.log(email);
-
     const user = await User.findOne({ where: { email: email } });
 
     if (user) {
@@ -50,7 +47,7 @@ const forgotPassword = async (req, res) => {
           to: recievers,
           htmlContent: `
                         <h1>Kindly reset the password through below link...</h1>
-                        <a href="http://localhost:3000/password/resetpassword/${id}">Reset password</a>
+                        <a href="${process.env.WEBSITE}/password/resetpassword/${id}">Reset password</a>
                     `,
         })
         .then((result) => {
@@ -109,7 +106,6 @@ const updatePassword = (req, res) => {
   try {
     const { newpassword } = req.query;
     const resetpasswordid = req.params.id;
-    console.log('new password------------', newpassword);
     Forgotpassword.findOne({ where: { id: resetpasswordid } }).then(
       (resetpasswordrequest) => {
         User.findOne({ where: { id: resetpasswordrequest.userId } }).then(

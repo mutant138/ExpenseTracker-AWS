@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const dotenv = require("dotenv");
+dotenv.config();
 
 function isStringInvalid(string) {
   return string === undefined || string.length === 0;
@@ -18,7 +20,6 @@ const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     //console.log({ name, email, password })
-
     if (isStringInvalid(name) || isStringInvalid(email) || isStringInvalid(password)) {
       return res.status(400).json({ err: "Bad parameters. Something is missing" });
     }
@@ -38,7 +39,6 @@ const signup = async (req, res) => {
 const login = async (req,res)=>{
   try{
   const { email,password } = req.body;
-  console.log(`Login details ${password}`)
   if(isStringInvalid(email) || isStringInvalid(password)){
     return res.status(400).json({success: false, message: `Email and password is missing`})
   }
@@ -63,7 +63,7 @@ const login = async (req,res)=>{
 }
 
 function generateAccessToken(id,name,ispremiumuser){ 
-  return jwt.sign({userId: id , name:name, ispremiumuser },'secretkeyformyproject1380')
+  return jwt.sign({userId: id , name:name, ispremiumuser },process.env.TOKEN_SECRET)
 }
 
 module.exports = {

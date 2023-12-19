@@ -6,7 +6,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const indexPage = async (req, res) => {
-    console.log("indexPage")
+    //console.log("indexPage")
     res.sendFile('index.html', { root: 'public/views' });
   };
 
@@ -33,15 +33,33 @@ const indexPage = async (req, res) => {
     }
 }
 
-const getexpenses = (req, res)=> {
-    //req.user.getExpenses
-    Expense.findAll({where : {userId: req.user.id}}).then(expenses => {
-        return res.status(200).json({expenses, success: true})
-    })
-    .catch(err => {
-        console.log(err)
-        return res.status(500).json({ error: err, success: false})
-    })
+const getexpenses = async (req, res)=> {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const offset = (page - 1) * limit;
+
+        // Fetch expenses for the current page
+        const expenses = await Expense.findAndCountAll({
+            where: { userId: req.user.id },
+            limit: limit,
+            offset: offset
+        });
+
+        // Calculate total pages
+        const totalExpenses = expenses.count;
+        const totalPages = Math.ceil(totalExpenses / limit);
+
+        // Send the response
+        return res.status(200).json({
+            expenses: expenses.rows || [],
+            success: true,
+            totalPages: totalPages
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: err.message, success: false });
+    }
 }
 
 const deleteExpense = async (req,res)=>{
@@ -49,7 +67,7 @@ const deleteExpense = async (req,res)=>{
    if(expenseid === undefined || expenseid.length ===0 ){
     return res.status(400).json({ success: false})
    }
-   console.log(expenseid)
+//    console.log(expenseid)
    try {
     // Retrieve the expense amount before deleting
     const expense = await Expense.findByPk(expenseid);
@@ -77,14 +95,13 @@ const deleteExpense = async (req,res)=>{
 
 function uploadToS3(data , filename){
     const BUCKET_NAME = process.env.BUCKET_NAME;
-    const IAM_USER_KEY = process.env.IAM_USER_KEY;
-    const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
+    const IAM_USER_KEY = process.env.AWS_ACCESS_KEY_ID;
+    const IAM_USER_SECRET = process.env.AWS_SECRET_ACCESS_KEY;
     let s3bucket = new AWS.S3({
         accessKeyId: IAM_USER_KEY,
         secretAccessKey: IAM_USER_SECRET,
         //Bucket: BUCKET_NAME
     })
-    
         var params = {
             Bucket: BUCKET_NAME,
             Key: filename,
@@ -109,9 +126,6 @@ const downloadExpenses = async(req,res)=>{
     //console.log(req)
    try {
     console.log(req.user)
-    // if(!req.user.ispremiumuser){
-    //     return res.status(401).json({ success: false, message: 'User is not a premium User'})
-    // }
       const expenses =await req.user.getExpenses()
     //   console.log(expenses)
     const stringifiedExpenses = JSON.stringify(expenses)

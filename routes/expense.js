@@ -2,7 +2,6 @@ const express = require('express')
 
 const expenseController = require('../controller/expense')
 const userauthentication = require('../middleware/auth')
-
 const router = express.Router()
 
 router.get('/index', expenseController.indexPage)

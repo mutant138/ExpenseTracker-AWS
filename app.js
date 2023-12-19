@@ -3,6 +3,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const sequelize = require('./util/database'); 
 
+
+
 const userRoutes = require('./routes/user');
 const expenseRoutes = require('./routes/expense')
 const purchaseRoutes = require('./routes/purchase')
@@ -23,6 +25,7 @@ app.use(express.static('public'));
 app.use(express.json());
 
 // Use your user routes
+app.use('/',userRoutes)
 app.use('/user', userRoutes);
 app.use('/expense',expenseRoutes)
 app.use('/purchase',purchaseRoutes)
@@ -48,7 +51,7 @@ sequelize.sync({ force: false })
     console.error('Error syncing database:', error);
   });
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

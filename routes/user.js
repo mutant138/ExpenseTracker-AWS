@@ -6,7 +6,7 @@ const expenseController = require('../controller/expense')
 
 
 const router = express.Router()
-router.get('/signup',userController.signupPage)
+router.get('/',userController.signupPage)
 router.post('/signup', userController.signup)
 router.get('/login',userController.loginPage)
 router.post('/login',userController.login)

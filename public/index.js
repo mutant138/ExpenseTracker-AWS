@@ -1,3 +1,6 @@
+const storedPage = localStorage.getItem('currentPage');
+currentPage = storedPage ? parseInt(storedPage) : 1;
+const PAGE_SIZE = 5; 
 function addNewExpense(e){
     e.preventDefault();
 
@@ -5,14 +8,12 @@ function addNewExpense(e){
         expenseamount: e.target.expenseamount.value,
         description: e.target.description.value,
         category: e.target.category.value,
-
     }
-    console.log(expenseDetails)
     const token  = localStorage.getItem('token')
-    axios.post('http://localhost:3000/expense/addexpense',expenseDetails,  { headers: {"Authorization" : token} })
-        .then((response) => {
-
-        addNewExpensetoUI(response.data.expense);
+    axios.post('/expense/addexpense',expenseDetails,  { headers: {"Authorization" : token} })
+    .then((response) => {
+     addNewExpensetoUI(response.data.expense);
+    fetchAndDisplayExpenses(currentPage)
 
     }).catch(err => showError(err))
 
@@ -34,25 +35,81 @@ function parseJwt (token) {
     return JSON.parse(jsonPayload);
 }
 
-window.addEventListener('DOMContentLoaded', ()=> {
+window.addEventListener('DOMContentLoaded', ()=>{
     const token  = localStorage.getItem('token')
     const decodeToken = parseJwt(token)
-    console.log(decodeToken)
+    // console.log(decodeToken)
     const ispremiumuser = decodeToken.ispremiumuser
     if(ispremiumuser){
         showPremiumuserMessage()
         showLeaderboard()
     }
-    axios.get('http://localhost:3000/expense/getexpenses', { headers: {"Authorization" : token} })
-    .then(response => {
-            response.data.expenses.forEach(expense => {
-
-                addNewExpensetoUI(expense);
-            })
-    }).catch(err => {
-        showError(err)
-    })
+    fetchAndDisplayExpenses(currentPage)
+    document.getElementById('pagination').addEventListener('click', (e) => {
+        if (e.target.classList.contains('pagination-btn')) {
+            const newPage = parseInt(e.target.getAttribute('data-page'));
+            if (newPage !== currentPage) {
+                currentPage = newPage;
+                fetchAndDisplayExpenses(currentPage);
+                localStorage.setItem('currentPage', currentPage);
+            }
+        }
+    });
 });
+
+function fetchAndDisplayExpenses(page){
+    const token = localStorage.getItem('token');
+    axios.get(`/expense/getexpenses?page=${page}&limit=${PAGE_SIZE}`, {
+        headers: { "Authorization": token }
+    }).then(response => {
+        const expenses = response.data.expenses || [];
+        displayExpenses(expenses);
+        updatePaginationControls(response.data.totalPages);   
+    }).catch(err => {
+        showError(err);
+        console.error('Error fetching expenses:', err);
+    });
+}
+
+function displayExpenses(expenses) {
+    const parentElement = document.getElementById('listOfExpenses');
+    if (expenses.length === 0) {
+        parentElement.innerHTML = '<p>No expenses found.</p>';
+    } else {
+        parentElement.innerHTML = '';
+        expenses.forEach(expense => {
+            addNewExpensetoUI(expense);
+        });
+    }
+}
+
+function updatePaginationControls(totalPages) {
+    let paginationHtml = '';
+
+    for (let i = 1; i <= totalPages; i++) {
+        paginationHtml += `<button class="btn btn-sm btn-primary pagination-btn" data-page="${i}">${i}</button>`;
+    }
+
+    document.getElementById('pagination').innerHTML = paginationHtml;
+    const pageButtons = document.querySelectorAll('.pagination-btn');
+    pageButtons.forEach(button => {
+        button.classList.remove('active');
+        if (parseInt(button.getAttribute('data-page')) === currentPage) {
+            button.classList.add('active');
+        }
+    });
+}
+
+function handlePagination(e) {
+    if (e.target.classList.contains('pagination-btn')) {
+        const newPage = parseInt(e.target.getAttribute('data-page'));
+        if (newPage !== currentPage) {
+            currentPage = newPage;
+            fetchAndDisplayExpenses(currentPage);
+            localStorage.setItem('currentPage', currentPage);
+        }
+    }
+}
 
 function addNewExpensetoUI(expense){
     const parentElement = document.getElementById('listOfExpenses');
@@ -60,8 +117,6 @@ function addNewExpensetoUI(expense){
     const listItem = document.createElement("li");
 listItem.id = expenseElemId;
 listItem.className = "list-group-item d-flex justify-content-between align-items-center";
-
-// Display expense details
 listItem.innerHTML = `
     <span>${expense.expenseamount} - ${expense.category} - ${expense.description}</span>
     <button onclick='deleteExpense(event, ${expense.id})' class="btn btn-danger btn-sm">
@@ -69,15 +124,15 @@ listItem.innerHTML = `
     </button>
 `;
 
-// Append the new list item to the parent element
+
 parentElement.appendChild(listItem);
 }
 
 function deleteExpense(e, expenseid) {
     const token = localStorage.getItem('token')
-    axios.delete(`http://localhost:3000/expense/deleteexpense/${expenseid}`,  { headers: {"Authorization" : token} }).then(() => {
+    axios.delete(`/expense/deleteexpense/${expenseid}`,  { headers: {"Authorization" : token} }).then(() => {
     removeExpensefromUI(expenseid);
-
+    fetchAndDisplayExpenses(currentPage)
     }).catch((err => {
         showError(err);
     }))
@@ -87,7 +142,7 @@ function showError(err){
     document.body.innerHTML += `<div style="color:red;"> ${err}</div>`
 }
 var leaderboardElem = document.getElementById("leaderboard");
-console.log(leaderboardElem);
+//console.log(leaderboardElem);
 var leaderboardDisplayed = false;
 
 function showLeaderboard() {
@@ -102,7 +157,7 @@ function showLeaderboard() {
     const token = localStorage.getItem("token");
     try {
       const userLeaderBoardArray = await axios.get(
-        "http://localhost:3000/premium/showLeaderBoard",
+        "/premium/showLeaderBoard",
         { headers: { Authorization: token } }
       );
       console.log(userLeaderBoardArray.data)
@@ -150,7 +205,7 @@ function removeExpensefromUI(expenseid){
 
 document.getElementById('rzp-button1').onclick = async function (e) {
     const token = localStorage.getItem('token')
-    const response  = await axios.get('http://localhost:3000/purchase/premiummembership', { headers: {"Authorization" : token} });
+    const response  = await axios.get('/purchase/premiummembership', { headers: {"Authorization" : token} });
     console.log(response);
     var options =
     {
@@ -158,7 +213,7 @@ document.getElementById('rzp-button1').onclick = async function (e) {
      "order_id": response.data.order.id,// For one time payment
      // This handler function will handle the success payment
      "handler": async function (response) {
-        const res = await axios.post('http://localhost:3000/purchase/updatetransactionstatus',{
+        const res = await axios.post('/purchase/updatetransactionstatus',{
              order_id: options.order_id,
              payment_id: response.razorpay_payment_id,
          }, { headers: {"Authorization" : token} })
@@ -166,6 +221,7 @@ document.getElementById('rzp-button1').onclick = async function (e) {
         console.log(res)
          alert('You are a Premium User Now')
          document.getElementById('rzp-button1').style.visibility = "hidden"
+         document.getElementById('downloadexpense').style.visibility = "visible"
          document.getElementById('message').innerHTML = "You are a premium user "
          localStorage.setItem('token', res.data.token)
          showLeaderboard()
@@ -183,9 +239,9 @@ document.getElementById('rzp-button1').onclick = async function (e) {
 
 async function download(){
     const token = localStorage.getItem('token')
-    console.log(token)
+   // console.log(token)
     try {
-        const res = await axios.get('http://localhost:3000/user/download', { headers: { Authorization: token } })
+        const res = await axios.get('/user/download', { headers: { Authorization: token } })
 
     if(res.status === 200){
         var a = document.createElement("a")
@@ -193,7 +249,7 @@ async function download(){
         a.download = 'myexpense.csv';
         a.click();
     }else{
-        console.log(res.data.message)
+        //console.log(res.data.message)
         throw new Error(res.data.message)
     }
     } catch(error){
