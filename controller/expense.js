@@ -2,6 +2,8 @@ const Expense = require('../models/expense');
 const User = require('../models/user'); 
 const sequelize = require('../util/database')
 const AWS = require('aws-sdk')
+const dotenv = require("dotenv");
+dotenv.config();
 
 const indexPage = async (req, res) => {
     console.log("indexPage")
@@ -74,9 +76,9 @@ const deleteExpense = async (req,res)=>{
 }
 
 function uploadToS3(data , filename){
-    const BUCKET_NAME = 'expensetrackerwebsite';
-    const IAM_USER_KEY = 'AKIAU5Q4BEGLCRHX467B';
-    const IAM_USER_SECRET = '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';
+    const BUCKET_NAME = process.env.BUCKET_NAME;
+    const IAM_USER_KEY = process.env.IAM_USER_KEY;
+    const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
     let s3bucket = new AWS.S3({
         accessKeyId: IAM_USER_KEY,
         secretAccessKey: IAM_USER_SECRET,
