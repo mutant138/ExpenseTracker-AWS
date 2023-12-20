@@ -6,14 +6,14 @@ dotenv.config();
 const authenticate = async (req, res, next) => {
     try {
       const token = req.header('Authorization');
-      console.log('Token:', token);
+      //console.log('Token:', token);
   
       if (!token) {
         return res.status(401).json({ success: false, message: 'No token provided' });
       }
       //console.log('env ===',process.env.TOKEN_SECRET)
       const user = jwt.verify(token, process.env.TOKEN_SECRET);
-      console.log('User:', user);
+      //console.log('User:', user);
   
       const foundUser = await User.findByPk(user.userId);
   

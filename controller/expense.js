@@ -125,7 +125,7 @@ function uploadToS3(data , filename){
 const downloadExpenses = async(req,res)=>{
     //console.log(req)
    try {
-    console.log(req.user)
+   // console.log(req.user)
       const expenses =await req.user.getExpenses()
     //   console.log(expenses)
     const stringifiedExpenses = JSON.stringify(expenses)
