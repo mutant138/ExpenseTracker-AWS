@@ -123,8 +123,6 @@ listItem.innerHTML = `
         Delete Expense
     </button>
 `;
-
-
 parentElement.appendChild(listItem);
 }
 
